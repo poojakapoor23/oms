@@ -7,18 +7,16 @@ import java.math.BigDecimal;
 
 public class OrderRequestDto {
 
-    @NotBlank(message = "Product name is required")
+    @NotBlank
     private String productName;
 
-    @NotNull(message = "Quantity is required")
-    @Min(value = 1, message = "Quantity must be at least 1")
+    @NotNull
+    @Min(1)
     private Integer quantity;
 
-    @NotNull(message = "Price is required")
-    @Min(value = 1, message = "Price must be greater than 0")
+    @NotNull
+    @Min(1)
     private BigDecimal price;
-
-    // ✅ Getters
 
     public String getProductName() {
         return productName;

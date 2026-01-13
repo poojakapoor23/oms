@@ -12,6 +12,8 @@ public interface OrderService {
     List<OrderResponseDto> getAllOrders();
 
     OrderResponseDto getOrderById(Long id);
+
+    void deleteOrderById(Long id);
 }
 
 

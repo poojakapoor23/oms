@@ -57,6 +57,17 @@ public class OrderServiceImpl implements OrderService {
                 ))
                 .toList();
     }
+    @Override
+    public void deleteOrderById(Long id) {
+
+        // Step 1: Check if order exists (reuse get logic)
+        OrderEntity order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        // Step 2: Delete the order
+        orderRepository.delete(order);
+    }
+
 
     @Override
     public OrderResponseDto getOrderById(Long id) {

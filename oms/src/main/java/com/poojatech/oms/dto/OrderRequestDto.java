@@ -29,4 +29,10 @@ public class OrderRequestDto {
     public BigDecimal getPrice() {
         return price;
     }
+
+    public void setQuantity(int i) {
+    }
+
+    public void setProductName(String mobile) {
+    }
 }

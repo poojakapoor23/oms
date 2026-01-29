@@ -16,4 +16,11 @@ public class OrderResponseDto {
     private BigDecimal price;
     private OrderStatus status;
     private String message;
+
+    public OrderResponseDto(long orderId, String created) {
+    }
+
+    public OrderResponseDto() {
+
+    }
 }

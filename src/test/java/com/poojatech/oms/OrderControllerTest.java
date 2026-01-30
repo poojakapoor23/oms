@@ -16,7 +16,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = OrderController.class)
+@WebMvcTest(OrderController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class OrderControllerTest {
 
@@ -32,7 +32,7 @@ class OrderControllerTest {
         // Arrange
         OrderResponseDto dto = new OrderResponseDto();
         dto.setOrderId(1L);
-        dto.setStatus(OrderStatus.valueOf("CREATED"));
+        dto.setStatus(OrderStatus.CREATED);
         dto.setMessage("Order fetched successfully");
 
         Mockito.when(orderService.getOrderById(1L))

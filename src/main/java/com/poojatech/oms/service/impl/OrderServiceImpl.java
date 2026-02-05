@@ -8,6 +8,7 @@ import com.poojatech.oms.model.OrderStatus;
 import com.poojatech.oms.repository.OrderRepository;
 import com.poojatech.oms.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
+
 
     private final OrderRepository orderRepository;
 
@@ -29,7 +31,7 @@ public class OrderServiceImpl implements OrderService {
                 .price(request.getPrice())
                 .status(OrderStatus.CREATED)
                 .createdAt(LocalDateTime.now())
-                .build();
+                .id(1L).build();
 
         OrderEntity saved = orderRepository.save(order);
 

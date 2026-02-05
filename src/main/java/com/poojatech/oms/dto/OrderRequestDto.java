@@ -5,6 +5,12 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
+import lombok.Getter;
+import lombok.Setter;
+
+
+@Getter
+@Setter
 public class OrderRequestDto {
 
     @NotBlank
@@ -17,22 +23,4 @@ public class OrderRequestDto {
     @NotNull
     @Min(1)
     private BigDecimal price;
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setQuantity(int i) {
-    }
-
-    public void setProductName(String mobile) {
-    }
 }

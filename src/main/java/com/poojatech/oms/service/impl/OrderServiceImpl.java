@@ -3,15 +3,17 @@ package com.poojatech.oms.service.impl;
 
 import com.poojatech.oms.dto.OrderRequestDto;
 import com.poojatech.oms.dto.OrderResponseDto;
-import com.poojatech.oms.model.OrderEntity;
-import com.poojatech.oms.model.OrderStatus;
+import com.poojatech.oms.model.*;
 import com.poojatech.oms.repository.OrderRepository;
 import com.poojatech.oms.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,7 +24,56 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
 
+   /* @Transactional
+    public void createFullOrder() {
+
+        OrderEntity order = new OrderEntity();
+        order.setProductName("Laptop");
+        order.setQuantity(1);
+        order.setPrice(new BigDecimal("3000"));
+        order.setStatus(OrderStatus.CREATED);
+        order.setCreatedAt(LocalDateTime.now());
+
+        // 🔹 Address (OneToOne)
+        Address address = new Address();
+        address.setStreet("MG Road");
+        address.setCity("Pune");
+        address.setOrder(order);
+        order.setAddress(address);
+
+        // 🔹 OrderItems (OneToMany)
+        OrderItem item1 = new OrderItem();
+        item1.setProductName("Mouse");
+        item1.setQuantity(2);
+        item1.setOrder(order);
+
+        OrderItem item2 = new OrderItem();
+        item2.setProductName("Keyboard");
+        item2.setQuantity(1);
+        item2.setOrder(order);
+
+        List<OrderItem> items = Arrays.asList(item1, item2);
+        order.setItems(items);
+
+
+
+        // 🔹 Products (ManyToMany)
+        Product p1 = new Product();
+        p1.setName("Laptop");
+
+        Product p2 = new Product();
+        p2.setName("Accessories");
+
+        List<Product> products = Arrays.asList(p1, p2);
+        order.setProducts(products);
+
+
+        orderRepository.save(order);
+    }
+*/
+
     @Override
+    @Transactional
     public OrderResponseDto createOrder(OrderRequestDto request) {
 
         OrderEntity order = OrderEntity.builder()
@@ -31,9 +82,17 @@ public class OrderServiceImpl implements OrderService {
                 .price(request.getPrice())
                 .status(OrderStatus.CREATED)
                 .createdAt(LocalDateTime.now())
-                .id(1L).build();
+                .build();
 
         OrderEntity saved = orderRepository.save(order);
+
+        //rollback condition
+        if (request.getPrice().compareTo(new BigDecimal("5000")) > 0) {
+            throw new RuntimeException("Price too high, rolling back!");
+        }
+
+        // update status
+        saved.setStatus(OrderStatus.CONFIRMED);
 
         return new OrderResponseDto(
                 saved.getId(),
@@ -44,6 +103,7 @@ public class OrderServiceImpl implements OrderService {
                 "Order created successfully"
         );
     }
+
 
     @Override
     public List<OrderResponseDto> getAllOrders() {

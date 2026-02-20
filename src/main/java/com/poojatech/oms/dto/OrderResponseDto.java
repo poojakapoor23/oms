@@ -17,10 +17,5 @@ public class OrderResponseDto {
     private OrderStatus status;
     private String message;
 
-    public OrderResponseDto(long orderId, String created) {
-    }
 
-    public OrderResponseDto() {
-
-    }
 }

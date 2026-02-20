@@ -1,4 +1,5 @@
 package com.poojatech.oms;
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import com.poojatech.oms.dto.OrderRequestDto;
@@ -57,6 +58,7 @@ class OmsApplicationTests {
         OrderRequestDto request = new OrderRequestDto();
         request.setProductName("Mobile");
         request.setQuantity(1);
+        request.setPrice(new BigDecimal("3000"));
 
         OrderResponseDto response = orderService.createOrder(request);
 

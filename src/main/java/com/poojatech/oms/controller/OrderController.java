@@ -1,6 +1,8 @@
 package com.poojatech.oms.controller;
+import com.poojatech.oms.dto.OrderFullResponseDto;
 import com.poojatech.oms.dto.OrderRequestDto;
 import com.poojatech.oms.dto.OrderResponseDto;
+import com.poojatech.oms.model.OrderEntity;
 import com.poojatech.oms.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Scanner;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -44,5 +47,16 @@ public class OrderController {
         orderService.deleteOrderById(id);
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/test-full-order")
+    public String testFullOrder() {
+        orderService.createFullOrder();
+        return "Order created";
+    }
+    @GetMapping("/orders/full")
+    public List<OrderFullResponseDto> getAllOrdersWithDetails() {
+        return orderService.getAllOrdersWithDetails();
+    }
+
+
 
 }

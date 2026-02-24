@@ -1,21 +1,22 @@
 
 package com.poojatech.oms.service.impl;
 
-import com.poojatech.oms.dto.OrderRequestDto;
-import com.poojatech.oms.dto.OrderResponseDto;
+import com.poojatech.oms.dto.*;
 import com.poojatech.oms.model.*;
 import com.poojatech.oms.repository.OrderRepository;
+import com.poojatech.oms.repository.ProductRepository;
 import com.poojatech.oms.service.OrderService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.ArrayList;
+//import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+//import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,8 +24,10 @@ public class OrderServiceImpl implements OrderService {
 
 
     private final OrderRepository orderRepository;
+    private final ProductRepository productRepository;
 
-   /* @Transactional
+
+    @Transactional
     public void createFullOrder() {
 
         OrderEntity order = new OrderEntity();
@@ -34,14 +37,14 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.CREATED);
         order.setCreatedAt(LocalDateTime.now());
 
-        // 🔹 Address (OneToOne)
+        // Address
         Address address = new Address();
         address.setStreet("MG Road");
         address.setCity("Pune");
         address.setOrder(order);
         order.setAddress(address);
 
-        // 🔹 OrderItems (OneToMany)
+        // Items
         OrderItem item1 = new OrderItem();
         item1.setProductName("Mouse");
         item1.setQuantity(2);
@@ -52,25 +55,24 @@ public class OrderServiceImpl implements OrderService {
         item2.setQuantity(1);
         item2.setOrder(order);
 
-        List<OrderItem> items = Arrays.asList(item1, item2);
-        order.setItems(items);
+        order.setItems(new ArrayList<>(List.of(item1, item2)));
 
-
-
-        // 🔹 Products (ManyToMany)
+        // Products
         Product p1 = new Product();
         p1.setName("Laptop");
 
         Product p2 = new Product();
         p2.setName("Accessories");
 
-        List<Product> products = Arrays.asList(p1, p2);
-        order.setProducts(products);
+        // SAVE PRODUCTS FIRST
+        productRepository.saveAll(List.of(p1, p2));
 
+        order.setProducts(new ArrayList<>(List.of(p1, p2)));
 
+        // SAVE ORDER
         orderRepository.save(order);
     }
-*/
+
 
     @Override
     @Transactional
@@ -119,6 +121,7 @@ public class OrderServiceImpl implements OrderService {
                 ))
                 .toList();
     }
+
     @Override
     public void deleteOrderById(Long id) {
 
@@ -145,4 +148,58 @@ public class OrderServiceImpl implements OrderService {
                 "Fetched successfully"
         );
     }
+
+    @Transactional
+    @Override
+    public List<OrderFullResponseDto> getAllOrdersWithDetails() {
+
+        return orderRepository.findAll()
+                .stream()
+                .map(order -> {
+
+                    OrderFullResponseDto dto = new OrderFullResponseDto();
+
+                    dto.setId(order.getId());
+                    dto.setProductName(order.getProductName());
+                    dto.setQuantity(order.getQuantity());
+                    dto.setPrice(order.getPrice());
+                    dto.setStatus(order.getStatus());
+
+                    // Address mapping
+                    if (order.getAddress() != null) {
+                        AddressDto addressDto = new AddressDto();
+                        addressDto.setStreet(order.getAddress().getStreet());
+                        addressDto.setCity(order.getAddress().getCity());
+                        dto.setAddress(addressDto);
+                    }
+
+                    // OrderItems mapping
+                    if (order.getItems() != null) {
+                        dto.setItems(
+                                order.getItems().stream().map(item -> {
+                                    OrderItemDto itemDto = new OrderItemDto();
+                                    itemDto.setProductName(item.getProductName());
+                                    itemDto.setQuantity(item.getQuantity());
+                                    return itemDto;
+                                }).toList()
+                        );
+                    }
+
+                    // Products mapping
+                    if (order.getProducts() != null) {
+                        dto.setProducts(
+                                order.getProducts().stream().map(product -> {
+                                    ProductDto productDto = new ProductDto();
+                                    productDto.setId(product.getId());
+                                    productDto.setName(product.getName());
+                                    return productDto;
+                                }).toList()
+                        );
+                    }
+
+                    return dto;
+                })
+                .toList();
+    }
 }
+

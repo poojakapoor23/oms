@@ -1,7 +1,9 @@
 package com.poojatech.oms.model;
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,15 +29,15 @@ public class OrderEntity {
 
     private LocalDateTime createdAt;
 
-    // ✅ OneToOne
+    // OneToOne
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private Address address;
 
-    // ✅ OneToMany
+    // OneToMany
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> items;
 
-    // ✅ ManyToMany
+    // ManyToMany (NO CASCADE)
     @ManyToMany
     @JoinTable(
             name = "order_products",
@@ -43,6 +45,5 @@ public class OrderEntity {
             inverseJoinColumns = @JoinColumn(name = "product_id")
     )
     private List<Product> products;
-
 
 }

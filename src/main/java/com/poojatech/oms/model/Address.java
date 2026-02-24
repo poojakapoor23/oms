@@ -1,6 +1,8 @@
 package com.poojatech.oms.model;
-import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.*;
+import javax.persistence.*;
 
 @Entity
 @Getter
@@ -18,5 +20,7 @@ public class Address {
 
     @OneToOne
     @JoinColumn(name = "order_id")
+
     private OrderEntity order;
+
 }

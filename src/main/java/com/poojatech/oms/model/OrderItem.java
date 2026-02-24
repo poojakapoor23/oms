@@ -1,9 +1,7 @@
 package com.poojatech.oms.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import lombok.*;
 import javax.persistence.*;
 
 @Entity
@@ -20,8 +18,12 @@ public class OrderItem {
     private String productName;
     private Integer quantity;
 
-    // ✅ ManyToOne
     @ManyToOne
     @JoinColumn(name = "order_id")
     private OrderEntity order;
+
+
+
+
+
 }

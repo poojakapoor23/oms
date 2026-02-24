@@ -1,10 +1,7 @@
 package com.poojatech.oms.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import lombok.*;
 import javax.persistence.*;
 import java.util.List;
 
@@ -22,6 +19,8 @@ public class Product {
     private String name;
 
     @ManyToMany(mappedBy = "products")
-    private List<OrderEntity> orders;
-}
 
+    private List<OrderEntity> orders;
+
+
+}

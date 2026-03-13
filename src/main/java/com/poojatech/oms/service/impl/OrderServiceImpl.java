@@ -27,7 +27,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
 
 
-    @Transactional
+   // @Transactional
     public void createFullOrder() {
 
         OrderEntity order = new OrderEntity();

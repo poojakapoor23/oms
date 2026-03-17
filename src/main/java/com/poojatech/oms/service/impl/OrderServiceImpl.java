@@ -1,4 +1,3 @@
-
 package com.poojatech.oms.service.impl;
 
 import com.poojatech.oms.dto.*;
@@ -7,27 +6,23 @@ import com.poojatech.oms.repository.OrderRepository;
 import com.poojatech.oms.repository.ProductRepository;
 import com.poojatech.oms.service.OrderService;
 import lombok.RequiredArgsConstructor;
-//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-//import java.util.Arrays;
 import java.util.List;
-//import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
-
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
 
-
-   // @Transactional
+    @Override
+    @Transactional
     public void createFullOrder() {
 
         OrderEntity order = new OrderEntity();
@@ -64,19 +59,21 @@ public class OrderServiceImpl implements OrderService {
         Product p2 = new Product();
         p2.setName("Accessories");
 
-        // SAVE PRODUCTS FIRST
         productRepository.saveAll(List.of(p1, p2));
 
         order.setProducts(new ArrayList<>(List.of(p1, p2)));
 
-        // SAVE ORDER
         orderRepository.save(order);
     }
-
 
     @Override
     @Transactional
     public OrderResponseDto createOrder(OrderRequestDto request) {
+
+        // Validate BEFORE DB call
+        if (request.getPrice().compareTo(new BigDecimal("5000")) > 0) {
+            throw new RuntimeException("Price too high!");
+        }
 
         OrderEntity order = OrderEntity.builder()
                 .productName(request.getProductName())
@@ -88,12 +85,6 @@ public class OrderServiceImpl implements OrderService {
 
         OrderEntity saved = orderRepository.save(order);
 
-        //rollback condition
-        if (request.getPrice().compareTo(new BigDecimal("5000")) > 0) {
-            throw new RuntimeException("Price too high, rolling back!");
-        }
-
-        // update status
         saved.setStatus(OrderStatus.CONFIRMED);
 
         return new OrderResponseDto(
@@ -106,36 +97,43 @@ public class OrderServiceImpl implements OrderService {
         );
     }
 
-
     @Override
+    @Transactional(readOnly = true)
     public List<OrderResponseDto> getAllOrders() {
-        return orderRepository.findAll()
-                .stream()
-                .map(o -> new OrderResponseDto(
-                        o.getId(),
-                        o.getProductName(),
-                        o.getQuantity(),
-                        o.getPrice(),
-                        o.getStatus(),
-                        "Success"
-                ))
-                .toList();
+
+        List<OrderEntity> orders = orderRepository.findAll();
+
+        List<OrderResponseDto> response = new ArrayList<>(orders.size());
+
+        for (OrderEntity o : orders) {
+            response.add(new OrderResponseDto(
+                    o.getId(),
+                    o.getProductName(),
+                    o.getQuantity(),
+                    o.getPrice(),
+                    o.getStatus(),
+                    "Success"
+            ));
+        }
+
+        return response;
     }
 
     @Override
+    @Transactional
     public void deleteOrderById(Long id) {
 
-        // Step 1: Check if order exists (reuse get logic)
-        OrderEntity order = orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+        if (!orderRepository.existsById(id)) {
+            throw new RuntimeException("Order not found");
+        }
 
-        // Step 2: Delete the order
-        orderRepository.delete(order);
+        orderRepository.deleteById(id);
     }
 
-
     @Override
+    @Transactional(readOnly = true)
     public OrderResponseDto getOrderById(Long id) {
+
         OrderEntity order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
@@ -149,57 +147,65 @@ public class OrderServiceImpl implements OrderService {
         );
     }
 
-    @Transactional
     @Override
+    @Transactional(readOnly = true)
     public List<OrderFullResponseDto> getAllOrdersWithDetails() {
 
-        return orderRepository.findAll()
-                .stream()
-                .map(order -> {
+        List<OrderEntity> orders = orderRepository.findAll();
 
-                    OrderFullResponseDto dto = new OrderFullResponseDto();
+        List<OrderFullResponseDto> result = new ArrayList<>();
 
-                    dto.setId(order.getId());
-                    dto.setProductName(order.getProductName());
-                    dto.setQuantity(order.getQuantity());
-                    dto.setPrice(order.getPrice());
-                    dto.setStatus(order.getStatus());
+        for (OrderEntity order : orders) {
 
-                    // Address mapping
-                    if (order.getAddress() != null) {
-                        AddressDto addressDto = new AddressDto();
-                        addressDto.setStreet(order.getAddress().getStreet());
-                        addressDto.setCity(order.getAddress().getCity());
-                        dto.setAddress(addressDto);
-                    }
+            OrderFullResponseDto dto = new OrderFullResponseDto();
 
-                    // OrderItems mapping
-                    if (order.getItems() != null) {
-                        dto.setItems(
-                                order.getItems().stream().map(item -> {
-                                    OrderItemDto itemDto = new OrderItemDto();
-                                    itemDto.setProductName(item.getProductName());
-                                    itemDto.setQuantity(item.getQuantity());
-                                    return itemDto;
-                                }).toList()
-                        );
-                    }
+            dto.setId(order.getId());
+            dto.setProductName(order.getProductName());
+            dto.setQuantity(order.getQuantity());
+            dto.setPrice(order.getPrice());
+            dto.setStatus(order.getStatus());
 
-                    // Products mapping
-                    if (order.getProducts() != null) {
-                        dto.setProducts(
-                                order.getProducts().stream().map(product -> {
-                                    ProductDto productDto = new ProductDto();
-                                    productDto.setId(product.getId());
-                                    productDto.setName(product.getName());
-                                    return productDto;
-                                }).toList()
-                        );
-                    }
+            // Address
+            if (order.getAddress() != null) {
+                AddressDto addressDto = new AddressDto();
+                addressDto.setStreet(order.getAddress().getStreet());
+                addressDto.setCity(order.getAddress().getCity());
+                dto.setAddress(addressDto);
+            }
 
-                    return dto;
-                })
-                .toList();
+            // Items
+            if (order.getItems() != null) {
+
+                List<OrderItemDto> items = new ArrayList<>();
+
+                for (OrderItem item : order.getItems()) {
+                    OrderItemDto itemDto = new OrderItemDto();
+                    itemDto.setProductName(item.getProductName());
+                    itemDto.setQuantity(item.getQuantity());
+                    items.add(itemDto);
+                }
+
+                dto.setItems(items);
+            }
+
+            // Products
+            if (order.getProducts() != null) {
+
+                List<ProductDto> products = new ArrayList<>();
+
+                for (Product product : order.getProducts()) {
+                    ProductDto productDto = new ProductDto();
+                    productDto.setId(product.getId());
+                    productDto.setName(product.getName());
+                    products.add(productDto);
+                }
+
+                dto.setProducts(products);
+            }
+
+            result.add(dto);
+        }
+
+        return result;
     }
 }
-
